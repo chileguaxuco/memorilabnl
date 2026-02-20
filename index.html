@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MemoriLABNL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #ffffff;
+      color: #1a1a1a;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-container {
+      text-align: center;
+      max-width: 400px;
+      padding: 40px;
+    }
+    .login-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .login-subtitle {
+      color: #6b7280;
+      font-size: 0.875rem;
+      font-weight: 300;
+      margin-bottom: 48px;
+      letter-spacing: 0.5px;
+    }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .login-input {
+      padding: 14px 20px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+      letter-spacing: 4px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .login-input:focus {
+      border-color: #1a1a1a;
+    }
+    .login-input::placeholder {
+      letter-spacing: 1px;
+      color: #d1d5db;
+    }
+    .login-btn {
+      padding: 14px 20px;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: background 0.2s;
+    }
+    .login-btn:hover { background: #000; }
+    .login-error {
+      color: #dc2626;
+      font-size: 0.8rem;
+      height: 20px;
+    }
+    .login-footer {
+      margin-top: 64px;
+      color: #d1d5db;
+      font-size: 0.75rem;
+      font-family: 'Space Mono', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <img src="assets/Logo_LABNL_Lab_Cultural_Ciudadano.png" alt="LABNL" style="width:120px;margin-bottom:24px">
+    <h1 class="login-title">MemoriLABNL</h1>
+    <p class="login-subtitle">Memoria documental de LABNL Lab Cultural Ciudadano</p>
+
+    <div class="login-form">
+      <input type="password" id="passInput" class="login-input"
+             placeholder="Contraseña" autofocus
+             onkeydown="if(event.key==='Enter')verificar()">
+      <button class="login-btn" onclick="verificar()">Entrar</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+
+    <p class="login-footer">LABNL Lab Cultural Ciudadano</p>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    // Si ya tiene sesión, ir directo a app
+    if (sessionStorage.getItem('memorilabnl_auth') === 'true') {
+      window.location = 'app.html';
+    }
+  </script>
+</body>
+</html>

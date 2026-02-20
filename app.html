@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MemoriLABNL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <span class="logo" onclick="navigate('home')">
+        <img src="assets/Logo_LABNL_Lab_Cultural_Ciudadano.png" alt="LABNL" style="height:32px;vertical-align:middle;margin-right:8px">MemoriLABNL
+      </span>
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input type="text" class="search-input" id="searchInput"
+               placeholder="Buscar por proyecto, palabra clave, autor..."
+               oninput="onSearchInput()" onkeydown="if(event.key==='Enter')doSearch()">
+      </div>
+      <div class="header-actions">
+        <button class="btn-icon" onclick="logout()">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Tabs -->
+  <nav class="tabs-bar" id="tabsBar">
+    <div class="tabs-inner">
+      <div class="tab active" data-tab="explorar" onclick="switchTab('explorar')">Explorar</div>
+      <div class="tab" data-tab="proyectos" onclick="switchTab('proyectos')">
+        Proyectos <span id="proyectosCount" class="tab-badge"></span>
+      </div>
+      <div class="tab" data-tab="palabras" onclick="switchTab('palabras')">Palabras clave</div>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <main class="main" id="content">
+    <div class="loading">Cargando datos...</div>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Scripts -->
+  <script src="js/auth.js"></script>
+  <script src="js/sheets.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
