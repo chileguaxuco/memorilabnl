@@ -80,6 +80,7 @@ async function tryLoadFromSheets() {
       window.DATA = sheetsData;
       console.log(`✓ Datos actualizados: ${window.DATA.stats.total} registros desde Google Sheets`);
       updateProjectCount();
+      render();
       showToast('✓ Datos actualizados desde Google Sheets');
     }
   } catch (error) {
@@ -428,7 +429,6 @@ function renderTagResults() {
 
     ${results.length === 0 ? `
       <div class="empty-state">
-        <div class="empty-state-icon">🔍</div>
         <div class="empty-state-text">No se encontraron registros con "${escapeHtml(selectedTag)}"</div>
       </div>
     ` : ''}
@@ -889,7 +889,6 @@ function renderSearch() {
 
     ${results.length === 0 ? `
       <div class="empty-state">
-        <div class="empty-state-icon">🔍</div>
         <div class="empty-state-text">No se encontraron resultados para "${escapeHtml(searchQuery)}"</div>
       </div>
     ` : ''}
