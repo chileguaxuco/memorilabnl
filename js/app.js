@@ -697,10 +697,33 @@ function renderDetailView(r, fondo) {
     <div class="detail-section" id="flickrSection">
       <div style="color:var(--text-muted);font-size:0.8rem">Cargando fotos de Flickr...</div>
     </div>
+
+    <div style="margin-top:8px;padding:0 0 24px">
+      <button onclick="toggleTextos()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px">
+        Generar textos Flickr
+      </button>
+      <div id="textosContainer" style="display:none;margin-top:12px"></div>
+    </div>
   `;
 
   // Load Flickr photos
   loadFlickrPhotos(r);
+}
+
+// ═══ TEXTOS FLICKR/YOUTUBE ═══
+
+function toggleTextos() {
+  var container = document.getElementById('textosContainer');
+  if (!container) return;
+  if (container.style.display === 'none') {
+    container.style.display = '';
+    if (!container.dataset.rendered && currentRecord) {
+      Textos.renderTextos(container, currentRecord);
+      container.dataset.rendered = 'true';
+    }
+  } else {
+    container.style.display = 'none';
+  }
 }
 
 // ═══ FLICKR API ═══
@@ -944,16 +967,38 @@ content.addEventListener('click', function(e) {
 });
 
 // ═══ INIT ═══
-initializeData().catch(err => {
-  console.error('💥 Error fatal:', err);
-  content.innerHTML = `
-    <div style="padding:40px;text-align:center;">
-      <div style="font-size:48px;margin-bottom:16px;">💥</div>
-      <div style="font-size:18px;color:#f44336;">Error crítico al inicializar</div>
-      <div style="color:#666;margin:16px 0;">${err.message}</div>
-      <button onclick="location.reload()" style="padding:12px 24px;background:#2196F3;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;">
-        Reintentar
-      </button>
-    </div>
-  `;
-});
+// Asegurar que el DOM esté listo antes de inicializar.
+// data.js (2.7MB) puede tardar en parsear; envolver en DOMContentLoaded
+// garantiza que el contenedor #content exista al momento de renderizar.
+function startApp() {
+  initializeData().catch(function(err) {
+    console.error('Error fatal:', err);
+    var errDiv = document.createElement('div');
+    errDiv.style.cssText = 'padding:40px;text-align:center;';
+    var icon = document.createElement('div');
+    icon.style.cssText = 'font-size:48px;margin-bottom:16px;';
+    icon.textContent = 'Error';
+    var msg = document.createElement('div');
+    msg.style.cssText = 'font-size:18px;color:#f44336;';
+    msg.textContent = 'Error critico al inicializar';
+    var detail = document.createElement('div');
+    detail.style.cssText = 'color:#666;margin:16px 0;';
+    detail.textContent = err.message;
+    var btn = document.createElement('button');
+    btn.style.cssText = 'padding:12px 24px;background:#2196F3;color:white;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;';
+    btn.textContent = 'Reintentar';
+    btn.onclick = function() { location.reload(); };
+    errDiv.appendChild(icon);
+    errDiv.appendChild(msg);
+    errDiv.appendChild(detail);
+    errDiv.appendChild(btn);
+    while (content.firstChild) content.removeChild(content.firstChild);
+    content.appendChild(errDiv);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startApp);
+} else {
+  startApp();
+}

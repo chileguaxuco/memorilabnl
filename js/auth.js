@@ -23,7 +23,7 @@ async function verificar() {
 
   if (hashHex === AUTH_HASH) {
     sessionStorage.setItem('memorilabnl_auth', 'true');
-    window.location = 'app.html';
+    window.location = 'selector.html';
   } else {
     errorEl.textContent = 'Contraseña incorrecta';
     document.getElementById('passInput').value = '';

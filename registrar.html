@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Documentar — MemoriLABNL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/registrar.css">
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <span class="logo" onclick="window.location='selector.html'">
+        <img src="assets/Logo_LABNL_Lab_Cultural_Ciudadano.png" alt="LABNL" style="height:32px;vertical-align:middle;margin-right:8px">MemoriLABNL
+      </span>
+      <div class="header-actions">
+        <a href="selector.html" class="btn-icon" style="text-decoration:none">&#8592; Menú</a>
+        <button class="btn-icon" onclick="logout()">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main" id="content">
+    <div class="loading" id="loadingMsg">Cargando catálogos...</div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/textos.js"></script>
+  <script src="js/registrar.js"></script>
+</body>
+</html>

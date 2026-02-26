@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MemoriLABNL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #ffffff;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      text-align: center;
+      max-width: 600px;
+      padding: 40px 24px;
+      width: 100%;
+    }
+    .logo-img { width: 120px; margin-bottom: 24px; }
+    .title {
+      font-family: 'Space Mono', monospace;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #6b7280;
+      font-size: 0.875rem;
+      font-weight: 300;
+      margin-bottom: 48px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Selector cards */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+    .card {
+      border: 2px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #fff;
+      text-align: center;
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card:hover {
+      border-color: #1a1a1a;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .card-title { font-size: 2rem; font-weight: 600; }
+
+    /* PIN overlay */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .overlay.active { display: flex; }
+    .pin-box {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+    }
+    .pin-title { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+    .pin-desc { font-size: 0.8rem; color: #6b7280; margin-bottom: 24px; }
+    .pin-input {
+      width: 100%;
+      padding: 14px 20px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: 'Inter', sans-serif;
+      text-align: center;
+      letter-spacing: 8px;
+      outline: none;
+      margin-bottom: 8px;
+      transition: border-color 0.2s;
+    }
+    .pin-input:focus { border-color: #1a1a1a; }
+    .pin-error { color: #dc2626; font-size: 0.8rem; height: 20px; margin-bottom: 12px; }
+    .pin-btn {
+      width: 100%;
+      padding: 14px;
+      background: #1a1a1a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      transition: background 0.2s;
+    }
+    .pin-btn:hover { background: #000; }
+    .pin-cancel {
+      background: none;
+      border: none;
+      color: #6b7280;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .pin-cancel:hover { color: #1a1a1a; }
+
+    .footer {
+      color: #d1d5db;
+      font-size: 0.75rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    @media (max-width: 480px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="assets/Logo_LABNL_Lab_Cultural_Ciudadano.png" alt="LABNL" class="logo-img">
+
+    <div class="cards">
+      <div class="card" onclick="window.location='app.html'">
+        <div class="card-title">Consultar</div>
+      </div>
+      <div class="card" onclick="showPin()">
+        <div class="card-title">Documentar</div>
+      </div>
+    </div>
+
+    <p class="footer">LABNL Lab Cultural Ciudadano</p>
+  </div>
+
+  <!-- PIN overlay -->
+  <div class="overlay" id="overlay">
+    <div class="pin-box">
+      <div class="pin-title">Acceso a Documentar</div>
+      <div class="pin-desc">Ingresa el PIN de documentación</div>
+      <input type="password" id="pinInput" class="pin-input"
+             placeholder="PIN" maxlength="20"
+             onkeydown="if(event.key==='Enter')verificarPin()">
+      <div class="pin-error" id="pinError"></div>
+      <button class="pin-btn" onclick="verificarPin()">Verificar</button>
+      <button class="pin-cancel" onclick="hidePin()">Cancelar</button>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    // Requiere autenticación previa
+    if (sessionStorage.getItem('memorilabnl_auth') !== 'true') {
+      window.location = 'index.html';
+    }
+
+    // Hash SHA-256 del PIN de documentar.
+    // PIN actual: "2021"
+    // Para cambiar: en consola del navegador:
+    //   crypto.subtle.digest('SHA-256', new TextEncoder().encode('nuevo_pin'))
+    //     .then(h => console.log(Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('')))
+    const DOC_PIN_HASH = '1bea20e1df19b12013976de2b5e0e3d1fb4ba088b59fe53642c324298b21ffd9';
+
+    function showPin() {
+      document.getElementById('overlay').classList.add('active');
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinError').textContent = '';
+      setTimeout(() => document.getElementById('pinInput').focus(), 50);
+    }
+
+    function hidePin() {
+      document.getElementById('overlay').classList.remove('active');
+    }
+
+    async function verificarPin() {
+      const pin = document.getElementById('pinInput').value;
+      if (!pin) return;
+
+      const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pin));
+      const hashHex = Array.from(new Uint8Array(hashBuffer))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+
+      if (hashHex === DOC_PIN_HASH) {
+        sessionStorage.setItem('memorilabnl_doc', 'true');
+        window.location = 'registrar.html';
+      } else {
+        document.getElementById('pinError').textContent = 'PIN incorrecto';
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinInput').focus();
+      }
+    }
+
+    // Cerrar overlay al hacer clic fuera
+    document.getElementById('overlay').addEventListener('click', function(e) {
+      if (e.target === this) hidePin();
+    });
+  </script>
+</body>
+</html>
