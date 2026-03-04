@@ -679,55 +679,78 @@ body {
   color: #666;
 }
 
-/* ── Tab badge ── */
-.tab-badge {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 2px 8px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 12px;
-  font-size: 11px;
+/* ── Panel de textos Flickr/YouTube ── */
+.textos-panel {
+  margin-top: 32px;
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+}
+
+.textos-section {
+  margin-bottom: 28px;
+}
+
+.textos-section-title {
+  font-size: 0.7rem;
   font-weight: 600;
-  min-width: 20px;
-  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
 }
 
-.tab.active .tab-badge {
-  background: rgba(33, 150, 243, 0.2);
+.textos-field {
+  margin-bottom: 14px;
 }
 
-/* ── Proyecto preview cards ── */
-.proyecto-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
+.textos-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
 }
 
-.proyecto-preview-card {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.proyecto-preview-card:hover {
-  border-color: #2196F3;
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
-  transform: translateY(-2px);
-}
-
-.proyecto-preview-name {
-  font-weight: 600;
-  font-size: 15px;
-  color: #1a1a1a;
+.textos-value {
+  padding: 10px 14px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: var(--text);
   margin-bottom: 6px;
-  line-height: 1.3;
 }
 
-.proyecto-preview-meta {
-  font-size: 13px;
-  color: #666;
+.textos-multiline {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.textos-copy {
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+.textos-copy:hover { border-color: var(--text); color: var(--text); }
+
+.textos-autores {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.textos-autor-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--text);
 }

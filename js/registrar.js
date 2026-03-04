@@ -22,6 +22,7 @@ var selectedFondo   = null;   // 'LABNL Proyecto' | 'Antiguo Palacio Federal'
 var autorTags       = [];
 var dispositivoTags = [];
 var palabrasTags    = [];
+var espacioEntries  = [];   // [{espacio: string, nivel: string}]
 
 // ── Toast ──
 function showToast(msg) {
@@ -95,8 +96,7 @@ function renderForm() {
   form.appendChild(makeFormatoField());
   form.appendChild(makeResguardoField());
   form.appendChild(makeField('Nombre del proyecto', 'reg', makeAcInput('regProyecto', catalogs.proyectos || [], 'Escribe para buscar...')));
-  form.appendChild(makeField('Espacio', 'reg', makeEspacioSelect()));
-  form.appendChild(makeField('Nivel', 'reg', makeNivelSelect()));
+  form.appendChild(makeEspacioField());
   form.appendChild(makeAutoriaField());
   form.appendChild(makeDispositivoField());
   form.appendChild(makeField('Enlaces', 'reg', makeTextarea('regEnlaces', 'URLs (una por línea)', 2)));
@@ -109,30 +109,6 @@ function renderForm() {
   initFormatoCheckboxes();
   initResguardoCheckboxes();
 
-  // Auto-rellenar nivel cuando se selecciona un espacio
-  var espSelect = document.getElementById('regEspacio');
-  if (espSelect && catalogs.espaciosMap) {
-    espSelect.addEventListener('change', function() {
-      var nivel = catalogs.espaciosMap[espSelect.value];
-      if (nivel) {
-        var nivSel = document.getElementById('regNivel');
-        if (nivSel) {
-          // Agregar opción si no existe (ej: "EXT")
-          var exists = false;
-          for (var i = 0; i < nivSel.options.length; i++) {
-            if (nivSel.options[i].value === nivel) { exists = true; break; }
-          }
-          if (!exists) {
-            var opt = document.createElement('option');
-            opt.value = nivel;
-            opt.textContent = nivel;
-            nivSel.appendChild(opt);
-          }
-          nivSel.value = nivel;
-        }
-      }
-    });
-  }
 }
 
 // ── Constructores de campos ──
@@ -310,42 +286,69 @@ function initResguardoCheckboxes() {
   });
 }
 
-function makeEspacioSelect() {
-  var sel = document.createElement('select');
-  sel.id = 'regEspacio';
-  sel.className = 'reg-select';
+function makeEspacioField() {
+  var wrap = document.createElement('div');
+  wrap.className = 'reg-field';
 
-  var opt0 = document.createElement('option');
-  opt0.value = '';
-  opt0.textContent = 'Seleccionar...';
-  sel.appendChild(opt0);
+  var lbl = document.createElement('label');
+  lbl.className = 'reg-label';
+  lbl.textContent = 'Espacio / Nivel';
+  wrap.appendChild(lbl);
 
-  (catalogs.espacios || []).forEach(function(e) {
-    var opt = document.createElement('option');
-    opt.value = e;
-    opt.textContent = e;
-    sel.appendChild(opt);
+  var acWrap = document.createElement('div');
+  acWrap.className = 'reg-ac';
+
+  var tagsWrap = document.createElement('div');
+  tagsWrap.className = 'reg-tags-wrap';
+  tagsWrap.id = 'espacioTagsWrap';
+
+  var input = document.createElement('input');
+  input.type = 'text';
+  input.id = 'espacioInput';
+  input.className = 'reg-tag-input';
+  input.placeholder = 'Escribe espacio y presiona Enter...';
+  input.setAttribute('autocomplete', 'off');
+  tagsWrap.appendChild(input);
+  tagsWrap.addEventListener('click', function() { input.focus(); });
+
+  var list = document.createElement('div');
+  list.className = 'reg-ac-list';
+  list.id = 'espacioList';
+
+  function addFromInput(val) {
+    var nivel = (catalogs.espaciosMap && catalogs.espaciosMap[val]) || '';
+    addEspacioEntry(val, nivel);
+    input.value = '';
+    list.classList.remove('open');
+  }
+
+  input.addEventListener('input', function() {
+    showAcSuggestions(input, catalogs.espacios || [], list, function(match) {
+      addFromInput(match);
+    });
   });
-  return sel;
-}
-
-function makeNivelSelect() {
-  var sel = document.createElement('select');
-  sel.id = 'regNivel';
-  sel.className = 'reg-select';
-
-  var opt0 = document.createElement('option');
-  opt0.value = '';
-  opt0.textContent = 'Seleccionar...';
-  sel.appendChild(opt0);
-
-  (catalogs.niveles || []).forEach(function(n) {
-    var opt = document.createElement('option');
-    opt.value = n;
-    opt.textContent = n;
-    sel.appendChild(opt);
+  input.addEventListener('focus', function() {
+    if (input.value.trim().length > 0) {
+      showAcSuggestions(input, catalogs.espacios || [], list, function(match) {
+        addFromInput(match);
+      });
+    }
   });
-  return sel;
+  input.addEventListener('blur', function() {
+    setTimeout(function() { list.classList.remove('open'); }, 200);
+  });
+  input.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      var val = input.value.trim();
+      if (val) addFromInput(val);
+    }
+  });
+
+  acWrap.appendChild(tagsWrap);
+  acWrap.appendChild(list);
+  wrap.appendChild(acWrap);
+  return wrap;
 }
 
 function makeAcInput(id, items, placeholder) {
@@ -768,6 +771,45 @@ function renderDispositivoTags() {
   });
 }
 
+function addEspacioEntry(espacio, nivel) {
+  for (var i = 0; i < espacioEntries.length; i++) {
+    if (espacioEntries[i].espacio === espacio) return;
+  }
+  espacioEntries.push({ espacio: espacio, nivel: nivel });
+  renderEspacioTags();
+}
+
+function removeEspacioEntry(idx) {
+  espacioEntries.splice(idx, 1);
+  renderEspacioTags();
+}
+
+function renderEspacioTags() {
+  var wrap = document.getElementById('espacioTagsWrap');
+  var input = document.getElementById('espacioInput');
+  if (!wrap || !input) return;
+
+  wrap.querySelectorAll('.reg-tag').forEach(function(t) { wrap.removeChild(t); });
+
+  espacioEntries.forEach(function(entry, idx) {
+    var tagEl = document.createElement('span');
+    tagEl.className = 'reg-tag';
+
+    var labelText = entry.espacio + (entry.nivel ? ' (' + entry.nivel + ')' : '');
+    var txt = document.createTextNode(labelText + ' ');
+    var x = document.createElement('span');
+    x.className = 'reg-tag-x';
+    x.textContent = '×';
+    x.addEventListener('click', (function(i) {
+      return function() { removeEspacioEntry(i); };
+    })(idx));
+
+    tagEl.appendChild(txt);
+    tagEl.appendChild(x);
+    wrap.insertBefore(tagEl, input);
+  });
+}
+
 function addPalabraTag(val) {
   if (palabrasTags.indexOf(val) !== -1) return;
   palabrasTags.push(val);
@@ -845,8 +887,8 @@ function submitForm() {
     serie:          document.getElementById('regSerie').value,
     proyecto:       document.getElementById('regProyecto').value.trim(),
     asunto:         document.getElementById('regAsunto').value.trim(),
-    espacio:        document.getElementById('regEspacio').value,
-    nivel:          document.getElementById('regNivel').value,
+    espacio:        espacioEntries.map(function(e) { return e.espacio; }).join('\n'),
+    nivel:          espacioEntries.map(function(e) { return e.nivel; }).join('\n'),
     formatos:       formatos,
     autoria:        autorTags.slice(),
     dispositivo:    dispositivoTags.slice(),
@@ -1004,6 +1046,7 @@ function resetForm() {
   autorTags       = [];
   dispositivoTags = [];
   palabrasTags    = [];
+  espacioEntries  = [];
   renderForm();
   window.scrollTo(0, 0);
 }
@@ -1180,11 +1223,16 @@ function fillFormFromRecord(r, fondoName) {
   if (r.a) document.getElementById('regAsunto').value = r.a;
   if (r.p) document.getElementById('regProyecto').value = r.p;
 
-  var espSel = document.getElementById('regEspacio');
-  if (r.e && espSel) espSel.value = r.e;
-
-  var nivSel = document.getElementById('regNivel');
-  if (r.n && nivSel) nivSel.value = r.n;
+  // Espacios: parsear valores multi-línea
+  if (r.e) {
+    espacioEntries = [];
+    var espacios = String(r.e).split('\n');
+    var niveles  = r.n ? String(r.n).split('\n') : [];
+    espacios.forEach(function(esp, idx) {
+      esp = esp.trim();
+      if (esp) addEspacioEntry(esp, (niveles[idx] || '').trim());
+    });
+  }
 
   if (r.en) document.getElementById('regEnlaces').value = r.en;
 

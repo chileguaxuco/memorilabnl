@@ -33,10 +33,11 @@ function parseGoogleDate(val) {
   return String(val);
 }
 
-// Parsea formatos: "Fotografía, Video" → ["Fotografía", "Video"]
+// Parsea listas: "Fotografía, Video" → ["Fotografía", "Video"]
+// Soporta separadores: coma, slash, salto de línea
 function parseList(val) {
   if (!val) return [];
-  return String(val).split(/[,\/]/).map(s => s.trim()).filter(Boolean);
+  return String(val).split(/[,\/\n]/).map(s => s.trim()).filter(Boolean);
 }
 
 // Parsea palabras clave: "REUNIONES/MEDIADORES" → ["REUNIONES", "MEDIADORES"]
