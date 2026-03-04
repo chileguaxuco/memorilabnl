@@ -11,7 +11,7 @@ if (sessionStorage.getItem('memorilabnl_doc') !== 'true') {
 
 // ── Configuración ──
 // Reemplaza con tu URL de Web App después de desplegar Codigo.gs
-var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwIPiGUKsT6riPWR-2WaPC7OMl8ziIfvaqBnpAbJ7euU_lDbBTqp9LtyK9o-BfOV8oMKg/exec';
+var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby9nIiREgEKziKxAgZKifT99Vz8467aV-MDUeHzpO4gl7tbMlCMrKenTzm42ati64EjbA/exec';
 
 var content      = document.getElementById('content');
 var loadingMsg   = document.getElementById('loadingMsg');
@@ -108,6 +108,31 @@ function renderForm() {
   // Inicializar checkboxes
   initFormatoCheckboxes();
   initResguardoCheckboxes();
+
+  // Auto-rellenar nivel cuando se selecciona un espacio
+  var espSelect = document.getElementById('regEspacio');
+  if (espSelect && catalogs.espaciosMap) {
+    espSelect.addEventListener('change', function() {
+      var nivel = catalogs.espaciosMap[espSelect.value];
+      if (nivel) {
+        var nivSel = document.getElementById('regNivel');
+        if (nivSel) {
+          // Agregar opción si no existe (ej: "EXT")
+          var exists = false;
+          for (var i = 0; i < nivSel.options.length; i++) {
+            if (nivSel.options[i].value === nivel) { exists = true; break; }
+          }
+          if (!exists) {
+            var opt = document.createElement('option');
+            opt.value = nivel;
+            opt.textContent = nivel;
+            nivSel.appendChild(opt);
+          }
+          nivSel.value = nivel;
+        }
+      }
+    });
+  }
 }
 
 // ── Constructores de campos ──
@@ -116,15 +141,27 @@ function makeTitle() {
   var div = document.createElement('div');
   div.style.marginBottom = '32px';
 
+  var topRow = document.createElement('div');
+  topRow.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
+
   var h1 = document.createElement('h1');
   h1.className = 'reg-title';
   h1.textContent = 'Nuevo Registro';
+
+  var copyBtn = document.createElement('button');
+  copyBtn.type = 'button';
+  copyBtn.className = 'copy-btn';
+  copyBtn.textContent = 'Copiar de registro anterior';
+  copyBtn.addEventListener('click', showCopyOverlay);
+
+  topRow.appendChild(h1);
+  topRow.appendChild(copyBtn);
 
   var p = document.createElement('p');
   p.className = 'reg-subtitle';
   p.textContent = 'Captura una nueva ficha de clasificación · los campos marcados con * son obligatorios';
 
-  div.appendChild(h1);
+  div.appendChild(topRow);
   div.appendChild(p);
   return div;
 }
@@ -968,6 +1005,230 @@ function resetForm() {
   dispositivoTags = [];
   palabrasTags    = [];
   renderForm();
+  window.scrollTo(0, 0);
+}
+
+// ═══ COPIAR DE REGISTRO ANTERIOR ═══
+
+function getCopyRecords() {
+  var d = window.DATA || (typeof DATA !== 'undefined' ? DATA : null);
+  if (!d) return [];
+  var records = [];
+  (d.labnl || []).forEach(function(r) {
+    records.push({ record: r, fondo: 'LABNL Proyecto' });
+  });
+  (d.apf || []).forEach(function(r) {
+    records.push({ record: r, fondo: 'Antiguo Palacio Federal' });
+  });
+  return records;
+}
+
+function setCopyResultsMsg(resultsEl, msg) {
+  while (resultsEl.firstChild) resultsEl.removeChild(resultsEl.firstChild);
+  var el = document.createElement('div');
+  el.className = 'copy-empty';
+  el.textContent = msg;
+  resultsEl.appendChild(el);
+}
+
+function showCopyOverlay() {
+  var existing = document.getElementById('copyOverlay');
+  if (existing) {
+    existing.classList.add('active');
+    var input = document.getElementById('copySearch');
+    input.value = '';
+    setCopyResultsMsg(document.getElementById('copyResults'), 'Escribe para buscar entre los registros existentes');
+    setTimeout(function() { input.focus(); }, 50);
+    return;
+  }
+
+  var overlay = document.createElement('div');
+  overlay.className = 'copy-overlay';
+  overlay.id = 'copyOverlay';
+
+  var box = document.createElement('div');
+  box.className = 'copy-box';
+
+  var header = document.createElement('div');
+  header.className = 'copy-header';
+  var title = document.createElement('div');
+  title.className = 'copy-title';
+  title.textContent = 'Copiar de registro anterior';
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'copy-close';
+  closeBtn.textContent = '\u00d7';
+  closeBtn.addEventListener('click', hideCopyOverlay);
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+
+  var search = document.createElement('input');
+  search.type = 'text';
+  search.className = 'copy-search';
+  search.id = 'copySearch';
+  search.placeholder = 'Buscar por nombre, proyecto, asunto...';
+  search.setAttribute('autocomplete', 'off');
+  search.addEventListener('input', function() { searchCopyRecords(search.value); });
+
+  var results = document.createElement('div');
+  results.className = 'copy-results';
+  results.id = 'copyResults';
+  var emptyMsg = document.createElement('div');
+  emptyMsg.className = 'copy-empty';
+  emptyMsg.textContent = 'Escribe para buscar entre los registros existentes';
+  results.appendChild(emptyMsg);
+
+  box.appendChild(header);
+  box.appendChild(search);
+  box.appendChild(results);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) hideCopyOverlay();
+  });
+
+  overlay.classList.add('active');
+  setTimeout(function() { search.focus(); }, 50);
+}
+
+function hideCopyOverlay() {
+  var overlay = document.getElementById('copyOverlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+function searchCopyRecords(query) {
+  var resultsEl = document.getElementById('copyResults');
+  var q = query.toLowerCase().trim();
+
+  if (q.length < 2) {
+    setCopyResultsMsg(resultsEl, 'Escribe al menos 2 caracteres para buscar');
+    return;
+  }
+
+  var all = getCopyRecords();
+  var matches = all.filter(function(item) {
+    var r = item.record;
+    return (r.i && r.i.toLowerCase().indexOf(q) !== -1) ||
+           (r.p && r.p.toLowerCase().indexOf(q) !== -1) ||
+           (r.a && r.a.toLowerCase().indexOf(q) !== -1) ||
+           (r.f && r.f.indexOf(q) !== -1) ||
+           (r.sc && r.sc.toLowerCase().indexOf(q) !== -1);
+  });
+
+  matches.sort(function(a, b) { return (b.record.f || '').localeCompare(a.record.f || ''); });
+  matches = matches.slice(0, 20);
+
+  while (resultsEl.firstChild) resultsEl.removeChild(resultsEl.firstChild);
+
+  if (matches.length === 0) {
+    setCopyResultsMsg(resultsEl, 'No se encontraron registros');
+    return;
+  }
+
+  matches.forEach(function(item) {
+    var r = item.record;
+    var el = document.createElement('div');
+    el.className = 'copy-item';
+
+    var titleDiv = document.createElement('div');
+    titleDiv.className = 'copy-item-title';
+    titleDiv.textContent = r.i || r.p || 'Sin t\u00edtulo';
+
+    var metaDiv = document.createElement('div');
+    metaDiv.className = 'copy-item-meta';
+    var metaParts = [r.f || '', r.sc || '', r.sr || ''];
+    if (r.p) metaParts.push(r.p);
+    metaDiv.textContent = metaParts.join(' \u00b7 ');
+
+    el.appendChild(titleDiv);
+    el.appendChild(metaDiv);
+
+    el.addEventListener('click', function() {
+      fillFormFromRecord(item.record, item.fondo);
+      hideCopyOverlay();
+      showToast('Datos copiados');
+    });
+
+    resultsEl.appendChild(el);
+  });
+}
+
+function fillFormFromRecord(r, fondoName) {
+  // 1. Select fondo (triggers sección dropdown population)
+  var fondoBtns = document.querySelectorAll('.reg-fondo-btn');
+  for (var i = 0; i < fondoBtns.length; i++) {
+    if (fondoBtns[i].dataset.fondo === fondoName) {
+      selectFondo(fondoBtns[i]);
+      break;
+    }
+  }
+
+  // 2. Set sección and trigger serie population
+  var secSel = document.getElementById('regSeccion');
+  if (r.sc && secSel) {
+    secSel.value = r.sc;
+    onSeccionChange();
+  }
+
+  // 3. Set serie
+  var serSel = document.getElementById('regSerie');
+  if (r.sr && serSel) serSel.value = r.sr;
+
+  // 4. Text fields
+  if (r.f) document.getElementById('regFecha').value = r.f;
+  if (r.i) document.getElementById('regId').value = r.i;
+  if (r.a) document.getElementById('regAsunto').value = r.a;
+  if (r.p) document.getElementById('regProyecto').value = r.p;
+
+  var espSel = document.getElementById('regEspacio');
+  if (r.e && espSel) espSel.value = r.e;
+
+  var nivSel = document.getElementById('regNivel');
+  if (r.n && nivSel) nivSel.value = r.n;
+
+  if (r.en) document.getElementById('regEnlaces').value = r.en;
+
+  // 5. Formato checkboxes
+  if (r.fm && r.fm.length) {
+    document.querySelectorAll('#regFormatos input[type="checkbox"]').forEach(function(cb) {
+      var shouldCheck = r.fm.indexOf(cb.value) !== -1;
+      cb.checked = shouldCheck;
+      cb.parentElement.classList.toggle('checked', shouldCheck);
+    });
+  }
+
+  // 6. Resguardo checkboxes
+  if (r.r) {
+    var resguardos = typeof r.r === 'string' ? r.r.split('\n') : [r.r];
+    document.querySelectorAll('#regResguardos input[type="checkbox"]').forEach(function(cb) {
+      var shouldCheck = resguardos.indexOf(cb.value) !== -1;
+      cb.checked = shouldCheck;
+      cb.parentElement.classList.toggle('checked', shouldCheck);
+    });
+  }
+
+  // 7. Autoría tags
+  autorTags = [];
+  if (r.au && r.au.length) {
+    r.au.forEach(function(a) { if (a) autorTags.push(a); });
+    renderAutorTags();
+  }
+
+  // 8. Dispositivo tags
+  dispositivoTags = [];
+  if (r.d) {
+    var devs = typeof r.d === 'string' ? r.d.split('\n') : [r.d];
+    devs.forEach(function(dv) { if (dv.trim()) dispositivoTags.push(dv.trim()); });
+    renderDispositivoTags();
+  }
+
+  // 9. Palabras clave tags
+  palabrasTags = [];
+  if (r.pc && r.pc.length) {
+    r.pc.forEach(function(p) { if (p) palabrasTags.push(p); });
+    renderPalabrasTags();
+  }
+
   window.scrollTo(0, 0);
 }
 

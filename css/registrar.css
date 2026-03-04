@@ -339,6 +339,100 @@
   color: var(--text);
 }
 
+/* ── Copiar de registro anterior ── */
+.copy-btn {
+  padding: 8px 16px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-family: var(--font);
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s;
+}
+.copy-btn:hover { border-color: var(--text); color: var(--text); }
+
+.copy-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 100;
+  padding-top: 10vh;
+}
+.copy-overlay.active { display: flex; }
+
+.copy-box {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 520px;
+  width: 92%;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.copy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.copy-title { font-size: 1rem; font-weight: 600; }
+.copy-close {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+}
+.copy-close:hover { color: var(--text); }
+
+.copy-search {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: var(--font);
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color 0.2s;
+}
+.copy-search:focus { border-color: var(--text); }
+
+.copy-results {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.copy-item {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.copy-item:hover {
+  border-color: var(--text);
+  background: var(--bg-alt);
+}
+.copy-item-title { font-size: 0.88rem; font-weight: 500; margin-bottom: 2px; }
+.copy-item-meta { font-size: 0.75rem; color: var(--text-muted); }
+.copy-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  padding: 32px 0;
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .reg-fondo-grid { grid-template-columns: 1fr; }
