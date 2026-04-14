@@ -40,10 +40,28 @@ function loadCatalogs() {
     .then(function(data) {
       catalogs = data;
       renderForm();
+      tryUpdateDataFromSheets();
     })
     .catch(function(err) {
       console.error('Error loading catalogs:', err);
       showFallbackError();
+    });
+}
+
+function tryUpdateDataFromSheets() {
+  if (typeof loadFromSheets !== 'function') return;
+  var timeout = new Promise(function(_, reject) {
+    setTimeout(function() { reject(new Error('Timeout')); }, 8000);
+  });
+  Promise.race([loadFromSheets(), timeout])
+    .then(function(sheetsData) {
+      if (sheetsData && sheetsData.labnl) {
+        window.DATA = sheetsData;
+        console.log('✓ Datos de búsqueda actualizados desde Google Sheets (' + sheetsData.stats.total + ' registros)');
+      }
+    })
+    .catch(function() {
+      // Sin conexión — data.js sigue disponible para búsqueda
     });
 }
 
